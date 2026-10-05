@@ -1,51 +1,75 @@
-const ClientModel = require('../models/clientModel');
+const ClientService = require('../services/clientService');
 
 const logAction = (type, message) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] [${type}] ${message}`);
 };
 
+
 // GET - Obtener todos los clientes
-const getClients = async (req, res) => {
+const getClients = async (req, res, next) => {
+
   try {
-    const clients = await ClientModel.FindAllClients();
+
+    const clients = await ClientService.getClients(req.query);
 
     logAction("INFO", "Clients retrieved successfully");
+
     res.status(200).json(clients);
 
   } catch (error) {
+
     logAction("ERROR", "Error retrieving clients");
-    res.status(500).json({ error: error.message });
+
+    next(error);
+
   }
+
 };
 
+
 // GET - Obtener un cliente por ID
-const getClientById = async (req, res) => {
+const getClientById = async (req, res, next) => {
+
   try {
+
     const { id } = req.params;
 
-    const client = await ClientModel.FindClientById(id);
+    const client = await ClientService.getClientById(id);
 
     if (!client) {
+
       logAction("WARN", `Client with ID ${id} not found`);
 
       return res.status(404).json({
         error: "Client not found"
       });
+
     }
 
-    logAction("INFO", `Client with ID ${id} retrieved successfully`);
+    logAction(
+      "INFO",
+      `Client with ID ${id} retrieved successfully`
+    );
+
     res.status(200).json(client);
 
   } catch (error) {
+
     logAction("ERROR", "Error retrieving client");
-    res.status(500).json({ error: error.message });
+
+    next(error);
+
   }
+
 };
 
+
 // POST - Crear un cliente
-const createClient = async (req, res) => {
+const createClient = async (req, res, next) => {
+
   try {
+
     const {
       unsername,
       paymaent_status,
@@ -59,14 +83,16 @@ const createClient = async (req, res) => {
       !comission_status ||
       !deadline
     ) {
+
       logAction("WARN", "Missing client data");
 
       return res.status(400).json({
         error: "All client fields are required"
       });
+
     }
 
-    const client = await ClientModel.CreateClient(
+    const client = await ClientService.createClient(
       unsername,
       paymaent_status,
       comission_status,
@@ -74,17 +100,25 @@ const createClient = async (req, res) => {
     );
 
     logAction("INFO", "Client created successfully");
+
     res.status(201).json(client);
 
   } catch (error) {
+
     logAction("ERROR", "Error creating client");
-    res.status(500).json({ error: error.message });
+
+    next(error);
+
   }
+
 };
 
+
 // PUT - Actualizar un cliente
-const updateClient = async (req, res) => {
+const updateClient = async (req, res, next) => {
+
   try {
+
     const { id } = req.params;
 
     const {
@@ -100,14 +134,16 @@ const updateClient = async (req, res) => {
       !comission_status ||
       !deadline
     ) {
+
       logAction("WARN", "Missing client data");
 
       return res.status(400).json({
         error: "All client fields are required"
       });
+
     }
 
-    const client = await ClientModel.UpdateClient(
+    const client = await ClientService.updateClient(
       id,
       unsername,
       paymaent_status,
@@ -116,38 +152,62 @@ const updateClient = async (req, res) => {
     );
 
     if (!client) {
-      logAction("WARN", `Client with ID ${id} not found`);
+
+      logAction(
+        "WARN",
+        `Client with ID ${id} not found`
+      );
 
       return res.status(404).json({
         error: "Client not found"
       });
+
     }
 
-    logAction("INFO", `Client with ID ${id} updated successfully`);
+    logAction(
+      "INFO",
+      `Client with ID ${id} updated successfully`
+    );
+
     res.status(200).json(client);
 
   } catch (error) {
+
     logAction("ERROR", "Error updating client");
-    res.status(500).json({ error: error.message });
+
+    next(error);
+
   }
+
 };
 
+
 // DELETE - Eliminar un cliente
-const deleteClient = async (req, res) => {
+const deleteClient = async (req, res, next) => {
+
   try {
+
     const { id } = req.params;
 
-    const client = await ClientModel.DeleteClient(id);
+    const client = await ClientService.deleteClient(id);
 
     if (!client) {
-      logAction("WARN", `Client with ID ${id} not found`);
+
+      logAction(
+        "WARN",
+        `Client with ID ${id} not found`
+      );
 
       return res.status(404).json({
         error: "Client not found"
       });
+
     }
 
-    logAction("INFO", `Client with ID ${id} deleted successfully`);
+    logAction(
+      "INFO",
+      `Client with ID ${id} deleted successfully`
+    );
 
     res.status(200).json({
       message: "Client deleted successfully",
@@ -155,10 +215,15 @@ const deleteClient = async (req, res) => {
     });
 
   } catch (error) {
+
     logAction("ERROR", "Error deleting client");
-    res.status(500).json({ error: error.message });
+
+    next(error);
+
   }
+
 };
+
 
 module.exports = {
   getClients,
